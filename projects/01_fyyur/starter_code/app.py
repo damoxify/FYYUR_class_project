@@ -86,7 +86,7 @@ app.jinja_env.filters['datetime'] = format_datetime
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
     venue = venue.query.get(venue_id)
-    shows = show.query.filter_by(venue_id=venue_id).all()
+    shows = show.query.filter_by(venue_id=venue_id).join(venue).all()
     our_current_time = datetime.now()
     past_shows = []
     upcoming_shows = []
