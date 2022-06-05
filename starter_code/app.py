@@ -60,14 +60,6 @@ app.jinja_env.filters['datetime'] = format_datetime
 #----------------------------------------------------------------------------#
 
 
-@app.route('/')
-def index():
-    return render_template('pages/home.html')
-
-
-#  Venues
-#  ----------------------------------------------------------------
-
 # @app.route('/venues')
 # def venues():
 #     def venues():
@@ -79,11 +71,22 @@ def index():
 #             state = city_state[1]
 #             venues = venue.query.filter_by(city=city, state=state).all()
 #     # TODO: replace with real venues data.
-    #       num_upcoming_shows should be aggregated based on number of upcoming shows per venues.
+#         #   num_upcoming_shows should be aggregated based on number of upcoming shows per venues.
+
+
+# @app.route('/')
+# def index():
+#     return render_template('pages/home.html')
+
+
+#  Venues
+#  ----------------------------------------------------------------
+
+
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
     venue = venue.query.get(venue_id)
-    shows = show.query.filter_by(venue_id=venue_id).all()
+    shows = show.query.filter_by(venue_id=venue_id).join(venue).all()
     our_current_time = datetime.now()
     past_shows = []
     upcoming_shows = []
@@ -126,7 +129,7 @@ def show_venue(venue_id):
 
 
 @app.route('/venues/search', methods=['POST'])
-def search_venue():
+def search_venues():
     search_term = request.form.get('search_term', '')
     venues = venue.query.filter(venue.name.ilike('%' + search_term + '%'))
     data = []
@@ -144,38 +147,37 @@ def search_venue():
 
     return render_template('pages/search_venues.html', results=response, search_term=search_term)
 
-
-# @app.route('/venues/<int:venue_id>')
-# def show_venue(venue_id):
     # shows the venues page with the given venue_id
     # TODO: replace with real venues data from the venues table, using venue_id
-   app.route('/venues')
+
+
+@app.route('/venues')
 def venues():
-  # TODO: replace with real venues data.
-  # num_upcoming_shows should be aggregated based on number of upcoming shows per venue.
-  
-  set_venue_datas=[]
-  set_venue_locations = db.session.query(venue.state, venue.city).group_by(venue.state, venue.city)
-  
-  for set_venue_location in set_venue_locations:
-      venues = venue.query.filter(venue.state == set_venue_location.state).filter(venue.city == set_venue_location.city).all()
-      
-      data=[]
-      for venue in venues:
-        data.append({
-          "id": venue.id,
-          "name": venue.name,
-          "num_upcoming_shows": len(db.session.query(show).filter(show.start_time > datetime.now()).all())
-        })
-        set_venue_datas.append({
-          "state": set_venue_location.state,
-          "city": set_venue_location.city,
-          "venues": data
-        })
-        
-        
-  return render_template('pages/venues.html', areas=set_venue_datas)
-    
+    # TODO: replace with real venues data.
+    # num_upcoming_shows should be aggregated based on number of upcoming shows per venue.
+
+    set_venue_datas = []
+    set_venue_locations = db.session.query(
+        venue.state, venue.city).group_by(venue.state, venue.city)
+
+    for set_venue_location in set_venue_locations:
+        venues = venue.query.filter(venue.state == set_venue_location.state).filter(
+            venue.city == set_venue_location.city).all()
+
+        data = []
+        for venue in venues:
+            data.append({
+                "id": venue.id,
+                "name": venue.name,
+                "num_upcoming_shows": len(db.session.query(show).filter(show.start_time > datetime.now()).all())
+            })
+            set_venue_datas.append({
+                "state": set_venue_location.state,
+                "city": set_venue_location.city,
+                "venues": data
+            })
+
+    return render_template('pages/venues.html', areas=set_venue_datas)
 
 #  Create venue
 #  ----------------------------------------------------------------
